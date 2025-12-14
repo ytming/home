@@ -2,6 +2,28 @@
 import fetchJsonp from "fetch-jsonp";
 
 /**
+ * JSONP 请求辅助函数 (新增)
+ * 用于处理腾讯地图 API 的跨域请求
+ */
+const loadJSONP = (url, callbackName) => {
+  return new Promise((resolve, reject) => {
+    // 定义 JSONP 回调函数
+    window[callbackName] = (data) => {
+      resolve(data); // 解析 JSON 数据
+      delete window[callbackName]; // 清理全局变量，防止污染
+    };
+    // 创建 script 标签
+    const script = document.createElement('script');
+    script.src = url;
+    script.onerror = () => {
+      reject(new Error('JSONP 请求失败'));
+      delete window[callbackName]; // 出错时也要清理
+    };
+    document.body.appendChild(script);
+  });
+};
+
+/**
  * 音乐播放器
  */
 
@@ -50,8 +72,22 @@ export const getHitokoto = async () => {
 };
 
 /**
- * 天气
+ * 天气 & 地理位置
  */
+
+// (新增) 获取腾讯地理位置信息（JSONP 方式）
+export const getTXAdcode = async (key) => {
+  const callback = `jsonpCallback_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+  const url = `https://apis.map.qq.com/ws/location/v1/ip?key=${key}&output=jsonp&callback=${callback}`;
+  return await loadJSONP(url, callback);
+};
+
+// (新增) 获取腾讯地理天气信息（JSONP 方式）
+export const getTXWeather = async (key, adcode) => {
+  const callback = `jsonpCallback_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+  const url = `https://apis.map.qq.com/ws/weather/v1/?key=${key}&adcode=${adcode}&type=now&output=jsonp&callback=${callback}`;
+  return await loadJSONP(url, callback);
+};
 
 // 获取高德地理位置信息
 export const getAdcode = async (key) => {
