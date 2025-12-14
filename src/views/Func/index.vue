@@ -4,8 +4,9 @@
     <el-row :gutter="20">
       <el-col :span="12">
         <div class="left">
-          <Hitokoto />
-          <Music v-if="playerHasId" />
+          <!-- 修改点 1: 删除了 <Hitokoto /> -->
+          <!-- 修改点 2: 删除了 v-if="playerHasId"，强制显示播放器 -->
+          <Music />
         </div>
       </el-col>
       <el-col :span="12">
@@ -32,7 +33,8 @@
 import { getCurrentTime } from "@/utils/getTime";
 import { mainStore } from "@/store";
 import Music from "@/components/Music.vue";
-import Hitokoto from "@/components/Hitokoto.vue";
+// 修改点 3: 删除了 Hitokoto 的引用
+// import Hitokoto from "@/components/Hitokoto.vue";
 import Weather from "@/components/Weather.vue";
 
 const store = mainStore();
@@ -41,8 +43,8 @@ const store = mainStore();
 const currentTime = ref({});
 const timeInterval = ref(null);
 
-// 播放器 id
-const playerHasId = import.meta.env.VITE_SONG_ID;
+// 修改点 4: 删除了 playerHasId 变量，因为我们现在强制显示，不需要判断 ID 了
+// const playerHasId = import.meta.env.VITE_SONG_ID;
 
 // 更新时间
 const updateTimeData = () => {
@@ -101,12 +103,18 @@ onBeforeUnmount(() => {
         }
       }
     }
-    .left,
+    // --- 修改开始：左侧容器 ---
+    .left {
+      width: 100%;
+      height: 100%;
+      // 去除所有内边距，把空间完全交给 Music 组件
+      padding: 0 !important; 
+    }
+    // --- 修改结束 ---
+
     .right {
       width: 100%;
       height: 100%;
-    }
-    .right {
       padding: 20px;
       display: flex;
       flex-direction: column;

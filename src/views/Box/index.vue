@@ -10,16 +10,7 @@
         @click="store.boxOpenState = false"
       />
     </transition>
-    <transition name="el-fade-in-linear">
-      <setting-two
-        class="setting"
-        theme="filled"
-        size="28"
-        fill="#ffffff60"
-        v-show="closeShow"
-        @click="store.setOpenState = true"
-      />
-    </transition>
+    <!-- 设置按钮的代码已删除 -->
     <div class="content">
       <!-- 可在此处自定义任意内容 -->
       <TimeCapsule />
@@ -29,7 +20,7 @@
 </template>
 
 <script setup>
-import { CloseOne, SettingTwo } from "@icon-park/vue-next";
+import { CloseOne } from "@icon-park/vue-next"; // SettingTwo 已删除
 import { mainStore } from "@/store";
 import TimeCapsule from "@/components/TimeCapsule.vue";
 import MoreContent from "@/components/MoreContent.vue";
@@ -51,8 +42,8 @@ const closeShow = ref(false);
     transform: scale(1);
   }
 
-  .close,
-  .setting {
+  /* 这里删掉了 .setting */
+  .close {
     position: absolute;
     top: 14px;
     right: 14px;
@@ -71,9 +62,7 @@ const closeShow = ref(false);
     }
   }
 
-  .setting {
-    right: 56px;
-  }
+  /* 这里原本的 .setting { right: 56px; } 已删除 */
 
   .content {
     display: flex;
