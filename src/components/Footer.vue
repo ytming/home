@@ -16,16 +16,16 @@
         <!-- 以下信息请不要修改哦 -->
         <span class="hidden">
           &amp;&nbsp;Made&nbsp;by
-          <a :href="config.github" target="_blank">
+          <!-- <a :href="config.github" target="_blank"> -->
             {{ config.author }}
-          </a>
+          <!-- </a> -->
         </span>
-        <!-- 站点备案 -->
-        <span>
-          &amp;
-          <a v-if="siteIcp" href="https://beian.miit.gov.cn" target="_blank">
-            {{ siteIcp }}
-          </a>
+        <!-- 站点备案 (仅在有备案号时显示 & 和备案号) -->
+        <span v-if="siteIcp">
+         &amp; 
+         <a href="https://beian.miit.gov.cn" target="_blank">
+           {{ siteIcp }}
+         </a>
         </span>
       </div>
       <div v-else class="lrc">
@@ -99,6 +99,7 @@ const siteUrl = computed(() => {
       align-items: center;
       .lrc-text {
         margin: 0 8px;
+        font-size: 18px; 
       }
       .i-icon {
         width: 18px;

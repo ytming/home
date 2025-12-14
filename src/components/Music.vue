@@ -1,14 +1,14 @@
 <template>
   <!-- 音乐控制面板 -->
+  <!-- 修改点 1: 删除了 v-show="store.musicOpenState" -->
   <div
     class="music"
     @mouseenter="volumeShow = true"
     @mouseleave="volumeShow = false"
-    v-show="store.musicOpenState"
   >
     <div class="btns">
       <span @click="openMusicList()">音乐列表</span>
-      <span @click="store.musicOpenState = false">回到一言</span>
+      <!-- 修改点 2: 删除了 "回到一言" 按钮 -->
     </div>
     <div class="control">
       <go-start theme="filled" size="30" fill="#efefef" @click="changeMusicIndex(0)" />
@@ -22,10 +22,11 @@
     </div>
     <div class="menu">
       <div class="name" v-show="!volumeShow">
+        <!-- 修改点 3: 优化了显示逻辑，如果没加载好显示连接中 -->
         <span>{{
-          store.getPlayerData.name
-            ? store.getPlayerData.name + " - " + store.getPlayerData.artist
-            : "未播放音乐"
+          store.musicIsOk
+            ? (store.getPlayerData.name ? store.getPlayerData.name + " - " + store.getPlayerData.artist : "还未启动音乐噢")
+            : "正在连接 R2 音乐库..."
         }}</span>
       </div>
       <div class="volume" v-show="volumeShow">
@@ -99,23 +100,28 @@ const playerData = reactive({
 // 开启播放列表
 const openMusicList = () => {
   musicListShow.value = true;
-  playerRef.value.toggleList();
+  // 增加判空，防止未加载完成点击报错
+  if(playerRef.value) {
+      playerRef.value.toggleList();
+  }
 };
 
 // 关闭播放列表
 const closeMusicList = () => {
   musicListShow.value = false;
-  playerRef.value.toggleList();
+  if(playerRef.value) {
+      playerRef.value.toggleList();
+  }
 };
 
 // 音乐播放暂停
 const changePlayState = () => {
-  playerRef.value.playToggle();
+  if(playerRef.value) playerRef.value.playToggle();
 };
 
 // 音乐上下曲
 const changeMusicIndex = (type) => {
-  playerRef.value.changeSong(type);
+  if(playerRef.value) playerRef.value.changeSong(type);
 };
 
 onMounted(() => {
@@ -137,7 +143,7 @@ watch(
   () => volumeNum.value,
   (value) => {
     store.musicVolume = value;
-    playerRef.value.changeVolume(store.musicVolume);
+    if(playerRef.value) playerRef.value.changeVolume(store.musicVolume);
   },
 );
 </script>
@@ -167,6 +173,7 @@ watch(
       text-overflow: ellipsis;
       overflow-x: hidden;
       white-space: nowrap;
+      cursor: pointer; // 增加鼠标手势
       &:hover {
         background: #ffffff4d;
       }
@@ -180,6 +187,7 @@ watch(
     width: 100%;
     .state {
       transition: opacity 0.1s;
+      cursor: pointer;
       .i-icon {
         width: 50px;
         height: 50px;
@@ -195,6 +203,7 @@ watch(
       justify-content: center;
       border-radius: 6px;
       transform: scale(1);
+      cursor: pointer;
       &:hover {
         background: #ffffff33;
       }
@@ -282,6 +291,7 @@ watch(
       width: 28px;
       height: 28px;
       display: block;
+      cursor: pointer;
       &:hover {
         transform: scale(1.2);
       }
