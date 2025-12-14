@@ -12,12 +12,12 @@
     <div :class="store.backgroundShow ? 'gray hidden' : 'gray'" />
     <Transition name="fade" mode="out-in">
       <a
-        v-if="store.backgroundShow && store.coverType != '3'"
+        v-if="store.backgroundShow"
         class="down"
-        :href="bgUrl"
-        target="_blank"
+        href="javascript:;"
+        @click.prevent="downloadImage"
       >
-        下载壁纸
+        {{ downloadText }}
       </a>
     </Transition>
   </div>
@@ -30,26 +30,101 @@ import { Error } from "@icon-park/vue-next";
 const store = mainStore();
 const bgUrl = ref(null);
 const imgTimeout = ref(null);
+const downloadText = ref("下载壁纸");
 const emit = defineEmits(["loadComplete"]);
 
-// 壁纸随机数
-// 请依据文件夹内的图片个数修改 Math.random() 后面的第一个数字
-const bgRandom = Math.floor(Math.random() * 10 + 1);
+// 读取环境变量
+const WALLPAPER_URL = import.meta.env.VITE_WALLPAPER_URL;
+// 本地默认壁纸路径 (请确保 public/images/ 下有此文件)
+const DEFAULT_WALLPAPER = "/images/defaultwallpaper.jpg"; //默认壁纸文件的路径
 
-// 更换壁纸链接
-const changeBg = (type) => {
-  if (type == 0) {
-    bgUrl.value = `/images/background${bgRandom}.jpg`;
-  } else if (type == 1) {
-    bgUrl.value = "https://api.dujin.org/bing/1920.php";
-  } else if (type == 2) {
-    bgUrl.value = "https://api.vvhan.com/api/wallpaper/views";
-  } else if (type == 3) {
-    bgUrl.value = "https://api.vvhan.com/api/wallpaper/acg";
+// 核心逻辑：获取壁纸
+const changeBg = async () => {
+  // 1. 先重置加载状态
+  store.setImgLoadStatus(false);
+  
+  try {
+    // 检查环境变量，如果没有配置直接抛出错误，进入 fallback 逻辑
+    if (!WALLPAPER_URL) {
+      throw new Error("VITE_WALLPAPER_URL 未配置");
+    }
+
+    // 2. 尝试从 Cloudflare Worker 获取
+    const response = await fetch(`${WALLPAPER_URL}?t=${new Date().getTime()}`);
+    
+    // 如果 Worker 返回 404/500 等错误，抛出异常
+    if (!response.ok) throw new Error("Worker Response Error");
+    
+    // 3. 成功：转换为 Blob
+    const blob = await response.blob();
+    createBlobUrl(blob);
+
+  } catch (error) {
+    console.warn("云端壁纸获取失败，尝试加载默认壁纸:", error);
+    // 4. 失败：加载本地兜底壁纸
+    loadFallback();
   }
 };
 
-// 图片加载完成
+// 加载本地兜底壁纸
+const loadFallback = async () => {
+  try {
+    // 请求本地文件
+    const response = await fetch(DEFAULT_WALLPAPER);
+    if (!response.ok) throw new Error("Default Wallpaper Missing");
+    
+    // 同样转换为 Blob，保持逻辑统一
+    const blob = await response.blob();
+    createBlobUrl(blob);
+    
+    // 提示用户
+    ElMessage.warning({
+      message: "云端壁纸加载失败，已切换至默认",
+      duration: 3000,
+      icon: h(Error, { theme: "filled", fill: "#e6a23c" }),
+    });
+    
+  } catch (err) {
+    console.error("默认壁纸也加载失败:", err);
+    imgLoadError();
+  }
+};
+
+// 辅助函数：生成 Blob URL 并赋值
+const createBlobUrl = (blob) => {
+  // 释放旧的内存
+  if (bgUrl.value) {
+    URL.revokeObjectURL(bgUrl.value);
+  }
+  // 生成新链接
+  bgUrl.value = URL.createObjectURL(blob);
+};
+
+// 下载功能
+const downloadImage = () => {
+  if (!bgUrl.value) {
+    ElMessage.warning("没有可下载的壁纸");
+    return;
+  }
+  
+  downloadText.value = "下载中...";
+  
+  const link = document.createElement('a');
+  link.href = bgUrl.value;
+  // 根据当前是否是默认壁纸来决定文件名 (可选优化)
+  const isDefault = bgUrl.value.includes("default");
+  link.download = `Wallpaper_${new Date().getTime()}.jpg`;
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  setTimeout(() => {
+    downloadText.value = "下载壁纸";
+  }, 1000);
+};
+
+// 图片加载完成 (DOM渲染层面)
 const imgLoadComplete = () => {
   imgTimeout.value = setTimeout(
     () => {
@@ -61,39 +136,34 @@ const imgLoadComplete = () => {
 
 // 图片动画完成
 const imgAnimationEnd = () => {
-  console.log("壁纸加载且动画完成");
-  // 加载完成事件
+  // console.log("壁纸加载且动画完成");
   emit("loadComplete");
 };
 
-// 图片显示失败
+// 彻底失败 (云端和本地都挂了)
 const imgLoadError = () => {
-  console.error("壁纸加载失败：", bgUrl.value);
-  ElMessage({
-    message: "壁纸加载失败，已临时切换回默认",
-    icon: h(Error, {
-      theme: "filled",
-      fill: "#efefef",
-    }),
+  ElMessage.error({
+    message: "壁纸加载彻底失败",
+    icon: h(Error, { theme: "filled", fill: "#ff0000" }),
   });
-  bgUrl.value = `/images/background${bgRandom}.jpg`;
 };
 
-// 监听壁纸切换
 watch(
   () => store.coverType,
-  (value) => {
-    changeBg(value);
+  () => {
+    changeBg();
   },
 );
 
 onMounted(() => {
-  // 加载壁纸
-  changeBg(store.coverType);
+  changeBg();
 });
 
 onBeforeUnmount(() => {
   clearTimeout(imgTimeout.value);
+  if (bgUrl.value) {
+    URL.revokeObjectURL(bgUrl.value);
+  }
 });
 </script>
 
@@ -159,6 +229,8 @@ onBeforeUnmount(() => {
     display: flex;
     justify-content: center;
     align-items: center;
+    text-decoration: none;
+    cursor: pointer;
     &:hover {
       transform: scale(1.05);
       background-color: #00000060;
