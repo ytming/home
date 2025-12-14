@@ -1,0 +1,14 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "home"
+main = "src/worker.js"
+compatibility_date = "2025-12-05"
+
+# 核心配置：告诉 Cloudflare 你的网页文件在哪里
+# 这里的 "./dist" 必须和你 pnpm run build 生成的文件夹名字一致
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# (可选) 只有当你需要观察实时日志时开启
+# [observability]
+# enabled = true
