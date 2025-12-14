@@ -22,7 +22,7 @@
 
 <script setup>
 import { MusicOne, PlayWrong } from "@icon-park/vue-next";
-import { getPlayerList } from "@/api";
+// import { getPlayerList } from "@/api"; // 这一行不再需要了，注释掉
 import { mainStore } from "@/store";
 import APlayer from "@worstone/vue-aplayer";
 
@@ -39,66 +39,54 @@ const playIndex = ref(0);
 
 // 配置项
 const props = defineProps({
-  // 主题色
-  theme: {
-    type: String,
-    default: "#efefef",
-  },
-  // 默认音量
+  theme: { type: String, default: "#efefef" },
   volume: {
     type: Number,
     default: 0.7,
-    validator: (value) => {
-      return value >= 0 && value <= 1;
-    },
+    validator: (value) => value >= 0 && value <= 1,
   },
-  // 歌曲服务器 ( netease-网易云, tencent-qq音乐 )
-  songServer: {
-    type: String,
-    default: "netease", //'netease' | 'tencent'
-  },
-  // 播放类型 ( song-歌曲, playlist-播放列表, album-专辑, search-搜索, artist-艺术家 )
-  songType: {
-    type: String,
-    default: "playlist",
-  },
-  // id
-  songId: {
-    type: String,
-    default: "7452421335",
-  },
-  // 列表是否默认折叠
-  listFolded: {
-    type: Boolean,
-    default: false,
-  },
-  // 列表最大高度
-  listMaxHeight: {
-    type: Number,
-    default: 420,
-  },
+  // 下面这些 props 虽然现在不用了，但保留着防止报错
+  songServer: { type: String, default: "netease" },
+  songType: { type: String, default: "playlist" },
+  songId: { type: String, default: "7452421335" },
+  listFolded: { type: Boolean, default: false },
+  listMaxHeight: { type: Number, default: 420 },
 });
 
 const listHeight = computed(() => {
   return props.listMaxHeight + "px";
 });
 
-// 初始化播放器
+// --- 核心修改区域 Start ---
 onMounted(() => {
-  nextTick(() => {
+  nextTick(async () => {
     try {
-      getPlayerList(props.songServer, props.songType, props.songId).then((res) => {
-        console.log(res);
-        // 更改播放器加载状态
-        store.musicIsOk = true;
-        // 生成歌单
-        playList.value = res;
-        console.log("音乐加载完成");
-        console.log(playList.value);
-        console.log(playIndex.value, playList.value.length, props.volume);
-      });
+      console.log("正在从 Cloudflare Worker 获取 R2 音乐列表...");
+      
+      // 1. 使用 fetch 请求你的 Worker 接口
+      const apiUrl = import.meta.env.VITE_MUSIC_API_URL;
+      const response = await fetch(apiUrl);
+      
+      // 2. 解析 JSON
+      const res = await response.json();
+
+      // 3. 校验数据
+      if (!res || res.length === 0) {
+        throw new Error("获取到的音乐列表为空");
+      }
+
+      console.log("获取成功:", res);
+
+      // 4. 更改播放器加载状态
+      store.musicIsOk = true;
+      
+      // 5. 生成歌单 (你的 Worker 返回的数据结构直接可以直接用)
+      playList.value = res;
+      
+      console.log("音乐加载完成，共", playList.value.length, "首");
+
     } catch (err) {
-      console.error(err);
+      console.error("加载音乐失败:", err);
       store.musicIsOk = false;
       ElMessage({
         message: "播放器加载失败",
@@ -111,14 +99,13 @@ onMounted(() => {
     }
   });
 });
+// --- 核心修改区域 End ---
 
 // 播放
 const onPlay = () => {
   console.log("播放");
   playIndex.value = player.value.aplayer.index;
-  // 播放状态
   store.setPlayerState(player.value.audioRef.paused);
-  // 储存播放器信息
   store.setPlayerData(playList.value[playIndex.value].name, playList.value[playIndex.value].artist);
   ElMessage({
     message: store.getPlayerData.name + " - " + store.getPlayerData.artist,
@@ -137,18 +124,45 @@ const onPause = () => {
 
 // 音频时间更新事件
 const onTimeUp = () => {
-  let lyrics = player.value.aplayer.lyrics[playIndex.value];
-  let lyricIndex = player.value.aplayer.lyricIndex;
-  if (!lyrics || !lyrics[lyricIndex]) {
+  // 1. 基础防呆检查
+  if (!player.value || !player.value.aplayer || !player.value.audioRef) return;
+
+  // 2. 获取歌词数组
+  // APlayer 会把你提供的 LRC 解析成这样的数组：
+  // [[0, "作词 : 黄伟文/李荣浩"], [1, "作曲 : 李荣浩"], ...]
+  const lyricsList = player.value.aplayer.lyrics[playIndex.value];
+
+  // 3. 如果这首歌真的没歌词，显示“纯音乐”或歌名
+  if (!lyricsList || lyricsList.length === 0) {
+    store.setPlayerLrc(store.getPlayerData.name + " - " + store.getPlayerData.artist);
     return;
   }
-  let lrc = lyrics[lyricIndex][1];
-  if (lrc === "Loading") {
-    lrc = "歌词加载中";
-  } else if (lrc === "Not available") {
-    lrc = "歌词加载失败";
+
+  // 4. 【关键】计算“抢答”时间
+  // 给当前播放时间 +0.5 秒，解决底部歌词慢半拍的问题
+  // 如果觉得还是慢，把 0.5 改成 0.8；如果太快了，改成 0.2
+  const currentTime = player.value.audioRef.currentTime + 0.4;
+
+  // 5. 查找当前对应的歌词
+  let currentLrc = "";
+  
+  for (let i = 0; i < lyricsList.length; i++) {
+    const time = lyricsList[i][0]; // 歌词时间戳
+    const text = lyricsList[i][1]; // 歌词文字
+
+    if (time <= currentTime) {
+      currentLrc = text;
+    } else {
+      // 因为数组是按时间排序的，超过当前时间就可以停止了
+      break;
+    }
   }
-  store.setPlayerLrc(lrc);
+
+  // 6. 过滤无效信息 & 更新显示
+  // 如果歌词是 "Loading" 或 "Not available"，我们选择不更新（保持上一句），而不是显示报错
+  if (currentLrc && currentLrc !== "Loading" && currentLrc !== "Not available") {
+    store.setPlayerLrc(currentLrc);
+  }
 };
 
 // 切换播放暂停事件
