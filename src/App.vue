@@ -12,9 +12,7 @@
           <MainRight v-show="!store.boxOpenState" />
           <Box v-show="store.boxOpenState" />
         </section>
-        <section class="more" v-show="store.setOpenState" @click="store.setOpenState = false">
-          <MoreSet />
-        </section>
+        <!-- 这里的 MoreSet 已经被删除了 -->
       </div>
       <!-- 移动端菜单按钮 -->
       <Icon
@@ -44,7 +42,7 @@ import MainRight from "@/views/Main/Right.vue";
 import Background from "@/components/Background.vue";
 import Footer from "@/components/Footer.vue";
 import Box from "@/views/Box/index.vue";
-import MoreSet from "@/views/MoreSet/index.vue";
+// import MoreSet from "@/views/MoreSet/index.vue"; // 已删除
 import cursorInit from "@/utils/cursor.js";
 import config from "@/../package.json";
 
@@ -83,7 +81,7 @@ onMounted(() => {
   // 屏蔽右键
   document.oncontextmenu = () => {
     ElMessage({
-      message: "为了浏览体验，本站禁用右键",
+      message: "为了更好的体验,已禁用右键~",
       grouping: true,
       duration: 2000,
     });
@@ -95,7 +93,7 @@ onMounted(() => {
     if (event.button == 1) {
       store.backgroundShow = !store.backgroundShow;
       ElMessage({
-        message: `已${store.backgroundShow ? "开启" : "退出"}壁纸展示状态`,
+        message: `已${store.backgroundShow ? "开启" : "退出"}壁纸展示~`,
         grouping: true,
       });
     }
@@ -151,17 +149,7 @@ onBeforeUnmount(() => {
       justify-content: center;
       align-items: center;
     }
-    .more {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #00000080;
-      backdrop-filter: blur(20px);
-      z-index: 2;
-      animation: fade 0.5s;
-    }
+    // .more 样式块已删除或忽略
     @media (max-width: 1200px) {
       padding: 0 2vw;
     }
@@ -195,41 +183,37 @@ onBeforeUnmount(() => {
     overflow-x: hidden;
     .container {
       height: 721px;
-      .more {
-        height: 721px;
-        width: calc(100% + 6px);
-      }
+      // .more { height: 721px; width: calc(100% + 6px); } // 删除相关引用
       @media (min-width: 391px) {
-        // w 1201px ~ max
         padding-left: 0.7vw;
         padding-right: 0.25vw;
-        @media (max-width: 1200px) { // w 1101px ~ 1280px
+        @media (max-width: 1200px) {
           padding-left: 2.3vw;
           padding-right: 1.75vw;
         }
-        @media (max-width: 1100px) { // w 993px ~ 1100px
+        @media (max-width: 1100px) {
           padding-left: 2vw;
           padding-right: calc(2vw - 6px);
         }
-        @media (max-width: 992px) { // w 901px ~ 992px
+        @media (max-width: 992px) {
           padding-left: 2.3vw;
           padding-right: 1.7vw;
         }
-        @media (max-width: 900px) { // w 391px ~ 900px
+        @media (max-width: 900px) {
           padding-left: 2vw;
           padding-right: calc(2vw - 6px);
         }
       }
     }
     .menu {
-      top: 605.64px; // 721px * 0.84
-      left: 170.5px; // 391 * 0.5 - 25px
+      top: 605.64px;
+      left: 170.5px;
       @media (min-width: 391px) {
         left: calc(50% - 25px);
       }
     }
     .f-ter {
-      top: 675px; // 721px - 46px
+      top: 675px;
       @media (min-width: 391px) {
         padding-left: 6px;
       }
@@ -241,7 +225,7 @@ onBeforeUnmount(() => {
       width: 391px;
     }
     .menu {
-      left: 167.5px; // 391px * 0.5 - 28px
+      left: 167.5px;
     }
     .f-ter {
       width: 391px;
