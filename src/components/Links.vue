@@ -63,7 +63,7 @@ const siteLinksList = computed(() => {
 
 // 网站链接图标
 const siteIcon = {
-  Blog,
+  ImagesRegular,
   Cloud,
   CompactDisc,
   Compass,
