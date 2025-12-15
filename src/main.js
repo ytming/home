@@ -14,9 +14,17 @@ pinia.use(piniaPluginPersistedstate);
 app.use(pinia);
 app.mount("#app");
 
-// PWA
-navigator.serviceWorker.addEventListener("controllerchange", () => {
-  // 弹出更新提醒
-  console.log("站点已更新，刷新后生效");
-  ElMessage("站点已更新，刷新后生效");
-});
+// ========================================================
+// ✅ 修改部分：清除旧的 Service Worker 缓存
+// 原有的 PWA 更新监听代码已删除，改为强制注销旧 SW
+// ========================================================
+if ('serviceWorker' in navigator) {
+  // 获取所有注册的 Service Worker
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      // 注销每一个找到的 SW
+      registration.unregister().then(() => {
+        console.log('✅ 已注销旧版 Service Worker，页面缓存限制已解除');
+      });
+    }
+  });
