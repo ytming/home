@@ -149,9 +149,9 @@ const onTimeUp = () => {
   }
 
   // 4. 【关键】计算“抢答”时间
-  // 给当前播放时间 +0.5 秒，解决底部歌词慢半拍的问题
+  // 给当前播放时间 +0.3 秒，解决底部歌词慢半拍的问题
   // 如果觉得还是慢，把 0.5 改成 0.8；如果太快了，改成 0.2
-  const currentTime = player.value.audioRef.currentTime + 0.4;
+  const currentTime = player.value.audioRef.currentTime + 0.3;
 
   // 5. 查找当前对应的歌词
   let currentLrc = "";
