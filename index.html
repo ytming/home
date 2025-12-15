@@ -2,10 +2,13 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <!-- ✅ 新增：强制禁止浏览器缓存 HTML 文件 -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <!-- ✅ 新增结束 -->
     <meta http-equiv="Access-Control-Allow-Origin" content="*" />
+    <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="%VITE_SITE_LOGO%" />
     <link rel="apple-touch-icon" href="%VITE_SITE_APPLE_LOGO%" />
@@ -16,7 +19,11 @@
     <meta name="author" content="%VITE_SITE_AUTHOR%" />
     <meta name="theme-color" content="#424242" />
     <title>%VITE_SITE_NAME%</title>
+    <!-- HarmonyOS Sans -->
+    <!-- 本站 CDN 已开启防盗链，非本站域名不可访问，请更改链接为下方内容，否则自定义字体将失效 -->
     <link rel="stylesheet" href="https://s1.hdslb.com/bfs/static/jinkela/long/font/regular.css" />
+    <!-- <link rel="stylesheet" href="https://cdn.imsyy.top/gh/imsyy/file/font/HarmonyOS_Sans/regular.min.css" /> -->
+    <!-- IE Out -->
     <script>
       if (/*@cc_on!@*/ false || (!!window.MSInputMethodContext && !!document.documentMode))
         window.location.href =
@@ -25,62 +32,13 @@
     </script>
   </head>
 
- <body>
+  <body>
+    <!-- 主体内容 -->
     <div id="app"></div>
+    <!-- noscript -->
     <noscript>
       <div style="text-align: center">请开启 JavaScript</div>
     </noscript>
     <script type="module" src="/src/main.js"></script>
-
-    <!-- 👇👇👇 临时救急：原生 HTML 按钮（不依赖 Vue） 👇👇👇 -->
-    <!-- 只有当 Vue 没加载出来，或者 SW 卡死时，这个按钮能救命 -->
-    <div id="emergency-fix-btn" style="display: none;">
-        <button onclick="window.nukeCacheAndReload && window.nukeCacheAndReload(window.configHomeUrl)" style="
-            position: fixed; bottom: 100px; right: 20px; z-index: 999999;
-            padding: 10px 20px; background: red; color: white; border: none; border-radius: 5px;
-        ">
-            修复跳转(救急)
-        </button>
-    </div>
-
-    <script>
-      (function() {
-        // 1. 定义目标域名 (请手动把这里的网址改成你的正确域名)
-        var TARGET_HOME = "https://www.tming.cn/"; 
-        window.configHomeUrl = TARGET_HOME;
-
-        // 2. 判断逻辑
-        var isOld = window.location.hostname === 'tming.cn';
-        
-        // 3. 显示原生按钮
-        if (isOld) {
-            var btn = document.getElementById('emergency-fix-btn');
-            if(btn) btn.style.display = 'block';
-        }
-
-        // 4. 清理函数
-        window.nukeCacheAndReload = async function(targetUrl) {
-            if(!confirm("微信缓存顽固，确定强力修复并跳转？")) return;
-            var dest = targetUrl || TARGET_HOME;
-            var finalUrl = dest + '?t=' + new Date().getTime();
-
-            try {
-                if (navigator.serviceWorker) {
-                    var regs = await navigator.serviceWorker.getRegistrations();
-                    for (var i = 0; i < regs.length; i++) await regs[i].unregister();
-                }
-                if (window.caches) {
-                    var keys = await caches.keys();
-                    for (var i = 0; i < keys.length; i++) await caches.delete(keys[i]);
-                }
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.replace(finalUrl);
-            } catch (e) {
-                window.location.replace(finalUrl);
-            }
-        };
-      })();
-    </script>
   </body>
 </html>
