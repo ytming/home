@@ -9,6 +9,7 @@
         target="_blank"
         @mouseenter="socialTip = item.tip"
         @mouseleave="socialTip = '通过这里联系我吧'"
+        @click="onLinkClick($event, item)"
       >
         <img class="icon" :src="item.icon" height="24" />
       </a>
@@ -19,12 +20,33 @@
 
 <script setup>
 import socialLinks from "@/assets/socialLinks.json";
+import { mainStore } from "@/store"; // 1. 引入 store
+
+const store = mainStore(); // 2. 实例化 store
 
 // 社交链接提示
 const socialTip = ref("通过这里联系我吧");
+
+// 3. 处理点击事件
+const onLinkClick = (e, item) => {
+  // 判断 name 是否为 wallpaper
+  if (item.name === "wallpaper") {
+    e.preventDefault(); // 阻止默认的 a 标签跳转行为
+    
+    // 切换壁纸展示状态 (逻辑同 App.vue 中的鼠标中键)
+    store.backgroundShow = !store.backgroundShow;
+    
+    // 弹出提示消息
+    ElMessage({
+      message: `已${store.backgroundShow ? "开启" : "退出"}壁纸展示~`,
+      grouping: true,
+    });
+  }
+};
 </script>
 
 <style lang="scss" scoped>
+/* 样式保持不变，此处省略 ... */
 .social {
   margin-top: 1rem;
   display: flex;
