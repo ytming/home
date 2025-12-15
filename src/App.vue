@@ -135,11 +135,19 @@ onBeforeUnmount(() => {
   transition: transform 0.3s;
   animation: fade-blur-main-in 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   animation-delay: 0.5s;
+  
+  // 核心修复：确保主容器也是 flex 布局，方便内容居中
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   .container {
     width: 100%;
-    height: 100vh;
+    height: 100vh; // 占满视口高度
     margin: 0 auto;
     padding: 0 0.5vw;
+    box-sizing: border-box; // 防止 padding 撑大盒子
+    
     .all {
       width: 100%;
       height: 100%;
@@ -149,89 +157,86 @@ onBeforeUnmount(() => {
       justify-content: center;
       align-items: center;
     }
-    // .more 样式块已删除或忽略
+
     @media (max-width: 1200px) {
       padding: 0 2vw;
     }
   }
+
   .menu {
     position: absolute;
     display: flex;
     justify-content: center;
     align-items: center;
-    top: 84%;
-    left: calc(50% - 28px);
+    // 移动端菜单位置优化
+    top: 80%; 
+    left: 50%;
+    transform: translateX(-50%); // 完美水平居中
     width: 56px;
     height: 34px;
     background: rgb(0 0 0 / 20%);
     backdrop-filter: blur(10px);
     border-radius: 6px;
-    transition: transform 0.3s;
+    transition: all 0.3s;
     animation: fade 0.5s;
+    z-index: 10;
+
     &:active {
-      transform: scale(0.95);
+      transform: translateX(-50%) scale(0.95);
     }
+
     .i-icon {
       transform: translateY(2px);
     }
+
     @media (min-width: 721px) {
       display: none;
     }
   }
-  @media (max-height: 720px) {
-    overflow-y: auto;
-    overflow-x: hidden;
+
+  /* --- 移动端适配重写 --- */
+  
+  @media (max-width: 720px) {
     .container {
-      height: 721px;
-      // .more { height: 721px; width: calc(100% + 6px); } // 删除相关引用
-      @media (min-width: 391px) {
-        padding-left: 0.7vw;
-        padding-right: 0.25vw;
-        @media (max-width: 1200px) {
-          padding-left: 2.3vw;
-          padding-right: 1.75vw;
-        }
-        @media (max-width: 1100px) {
-          padding-left: 2vw;
-          padding-right: calc(2vw - 6px);
-        }
-        @media (max-width: 992px) {
-          padding-left: 2.3vw;
-          padding-right: 1.7vw;
-        }
-        @media (max-width: 900px) {
-          padding-left: 2vw;
-          padding-right: calc(2vw - 6px);
-        }
+      // 移除固定高度，允许内容自然伸缩，但保持在视口内
+      height: 100vh;
+      padding: 0 16px; // 给予左右边距
+      
+      .all {
+        flex-direction: column; // 确保竖排
+        padding: 0;
       }
     }
-    .menu {
-      top: 605.64px;
-      left: 170.5px;
-      @media (min-width: 391px) {
-        left: calc(50% - 25px);
-      }
-    }
-    .f-ter {
-      top: 675px;
-      @media (min-width: 391px) {
-        padding-left: 6px;
+
+    // 针对特别小的屏幕（旧款 iPhone 等）
+    @media (max-width: 390px) {
+      .container {
+        width: 100%; // 强制宽度 100%
+        padding: 0 10px;
       }
     }
   }
-  @media (max-width: 390px) {
-    overflow-x: auto;
+
+  /* --- 处理高度不足的设备（横屏或小屏） --- */
+  @media (max-height: 720px) {
     .container {
-      width: 391px;
+      // 保证内容居中
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
+    
     .menu {
-      left: 167.5px;
+      top: 85%; // 稍微靠下一点
     }
+    
     .f-ter {
-      width: 391px;
-    }
-    @media (min-height: 721px) {
-      overflow-y: hidden;
+      // 页脚位置优化
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
     }
   }
 }
