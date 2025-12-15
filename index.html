@@ -25,53 +25,62 @@
     </script>
   </head>
 
-  <body>
+ <body>
     <div id="app"></div>
     <noscript>
       <div style="text-align: center">请开启 JavaScript</div>
     </noscript>
     <script type="module" src="/src/main.js"></script>
 
-    <!-- index.html 底部脚本 -->
-<script>
-  (function() {
-    // ✅ 修改点：增加 targetUrl 参数，不再写死网址
-    window.nukeCacheAndReload = async function(targetUrl) {
-        if(!confirm("确定要修复跳转问题并刷新页面吗？")) return;
+    <!-- 👇👇👇 临时救急：原生 HTML 按钮（不依赖 Vue） 👇👇👇 -->
+    <!-- 只有当 Vue 没加载出来，或者 SW 卡死时，这个按钮能救命 -->
+    <div id="emergency-fix-btn" style="display: none;">
+        <button onclick="window.nukeCacheAndReload && window.nukeCacheAndReload(window.configHomeUrl)" style="
+            position: fixed; bottom: 100px; right: 20px; z-index: 999999;
+            padding: 10px 20px; background: red; color: white; border: none; border-radius: 5px;
+        ">
+            修复跳转(救急)
+        </button>
+    </div>
 
-        // 如果没传参数，兜底回首页（虽然一般都会传）
-        var dest = targetUrl || '/'; 
-        // 加上时间戳
-        var finalUrl = dest + (dest.indexOf('?') > -1 ? '&' : '?') + 't=' + new Date().getTime();
+    <script>
+      (function() {
+        // 1. 定义目标域名 (请手动把这里的网址改成你的正确域名)
+        var TARGET_HOME = "https://www.tming.cn/"; 
+        window.configHomeUrl = TARGET_HOME;
 
-        try {
-            // 1. 注销 Service Worker
-            if (navigator.serviceWorker) {
-                var registrations = await navigator.serviceWorker.getRegistrations();
-                for (var i = 0; i < registrations.length; i++) {
-                    await registrations[i].unregister();
-                }
-            }
-            // 2. 删除 Cache Storage
-            if (window.caches) {
-                var keys = await caches.keys();
-                for (var i = 0; i < keys.length; i++) {
-                    await caches.delete(keys[i]);
-                }
-            }
-            // 3. 清空存储
-            localStorage.clear();
-            sessionStorage.clear();
-
-            // 4. ✅ 跳转到传入的目标地址
-            window.location.replace(finalUrl);
-
-        } catch (e) {
-            console.error(e);
-            window.location.replace(finalUrl);
+        // 2. 判断逻辑
+        var isOld = window.location.hostname === 'tming.cn';
+        
+        // 3. 显示原生按钮
+        if (isOld) {
+            var btn = document.getElementById('emergency-fix-btn');
+            if(btn) btn.style.display = 'block';
         }
-    };
-  })();
-</script>
+
+        // 4. 清理函数
+        window.nukeCacheAndReload = async function(targetUrl) {
+            if(!confirm("微信缓存顽固，确定强力修复并跳转？")) return;
+            var dest = targetUrl || TARGET_HOME;
+            var finalUrl = dest + '?t=' + new Date().getTime();
+
+            try {
+                if (navigator.serviceWorker) {
+                    var regs = await navigator.serviceWorker.getRegistrations();
+                    for (var i = 0; i < regs.length; i++) await regs[i].unregister();
+                }
+                if (window.caches) {
+                    var keys = await caches.keys();
+                    for (var i = 0; i < keys.length; i++) await caches.delete(keys[i]);
+                }
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.replace(finalUrl);
+            } catch (e) {
+                window.location.replace(finalUrl);
+            }
+        };
+      })();
+    </script>
   </body>
 </html>
