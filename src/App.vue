@@ -12,8 +12,8 @@
           <MainRight v-show="!store.boxOpenState" />
           <Box v-show="store.boxOpenState" />
         </section>
+        <!-- 这里的 MoreSet 已经被删除了 -->
       </div>
-
       <!-- 移动端菜单按钮 -->
       <Icon
         class="menu"
@@ -23,15 +23,6 @@
       >
         <component :is="store.mobileOpenState ? CloseSmall : HamburgerButton" />
       </Icon>
-
-      <!-- ✅ 【新增】修复跳转按钮 (只在旧域名显示) -->
-      <div class="fix-btn" v-if="isOldDomain" @click="handleFix" title="点击修复跳转问题">
-        <Icon size="24">
-          <Attention theme="filled" fill="#f56c6c" />
-        </Icon>
-        <span class="fix-text">修复跳转</span>
-      </div>
-
       <!-- 页脚 -->
       <Transition name="fade" mode="out-in">
         <Footer class="f-ter" v-show="!store.backgroundShow && !store.setOpenState" />
@@ -42,8 +33,7 @@
 
 <script setup>
 import { helloInit, checkDays } from "@/utils/getTime.js";
-// ✅ 【修改】引入 Attention 图标
-import { HamburgerButton, CloseSmall, Attention } from "@icon-park/vue-next";
+import { HamburgerButton, CloseSmall } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
 import { Icon } from "@vicons/utils";
 import Loading from "@/components/Loading.vue";
@@ -52,15 +42,11 @@ import MainRight from "@/views/Main/Right.vue";
 import Background from "@/components/Background.vue";
 import Footer from "@/components/Footer.vue";
 import Box from "@/views/Box/index.vue";
+// import MoreSet from "@/views/MoreSet/index.vue"; // 已删除
 import cursorInit from "@/utils/cursor.js";
 import config from "@/../package.json";
-// ✅ 【新增】引入 ref
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 
 const store = mainStore();
-
-// ✅ 【新增】定义变量，否则下面会报错
-const isOldDomain = ref(false);
 
 // 页面宽度
 const getWidth = () => {
@@ -70,7 +56,9 @@ const getWidth = () => {
 // 加载完成事件
 const loadComplete = () => {
   nextTick(() => {
+    // 欢迎提示
     helloInit();
+    // 默哀模式
     checkDays();
   });
 };
@@ -86,45 +74,11 @@ watch(
   },
 );
 
-// ✅ 【新增】修复按钮的点击事件
-const handleFix = () => {
-  // 确保地址以 / 结尾
-  const targetUrl = config.home.endsWith('/') ? config.home : config.home + '/';
-  
-  if (window.nukeCacheAndReload) {
-    // 调用 index.html 里的全局函数
-    window.nukeCacheAndReload(targetUrl);
-  } else {
-    // 兜底方案
-    window.location.href = targetUrl + '?t=' + new Date().getTime();
-  }
-};
-
 onMounted(() => {
-  // ✅ 【新增】域名检测逻辑
-  let targetDomain = '';
-  try {
-    targetDomain = new URL(config.home).hostname; 
-  } catch (e) {
-    targetDomain = 'www.tming.cn'; 
-  }
-
-  const currentDomain = window.location.hostname;
-  // 排除本地开发环境
-  const isDev = currentDomain === 'localhost' || currentDomain === '127.0.0.1';
-
-  if (currentDomain !== targetDomain && !isDev) {
-    isOldDomain.value = true; // 显示按钮
-    ElMessage({
-      message: `检测到域名异常，请点击右上角/右下角的修复按钮跳转至 ${targetDomain}`,
-      type: 'warning',
-      duration: 5000,
-    });
-  }
-
-  // 其他原有逻辑
+  // 自定义鼠标
   cursorInit();
 
+  // 屏蔽右键
   document.oncontextmenu = () => {
     ElMessage({
       message: "为了更好的体验,已禁用右键~",
@@ -134,6 +88,7 @@ onMounted(() => {
     return false;
   };
 
+  // 鼠标中键事件
   window.addEventListener("mousedown", (event) => {
     if (event.button == 1) {
       store.backgroundShow = !store.backgroundShow;
@@ -144,9 +99,11 @@ onMounted(() => {
     }
   });
 
+  // 监听当前页面宽度
   getWidth();
   window.addEventListener("resize", getWidth);
 
+  // 控制台输出
   const styleTitle1 = "font-size: 20px;font-weight: 600;color: rgb(244,167,89);";
   const styleTitle2 = "font-size:12px;color: rgb(244,167,89);";
   const styleContent = "color: rgb(30,152,255);";
@@ -178,18 +135,11 @@ onBeforeUnmount(() => {
   transition: transform 0.3s;
   animation: fade-blur-main-in 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   animation-delay: 0.5s;
-  
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
   .container {
     width: 100%;
     height: 100vh;
     margin: 0 auto;
     padding: 0 0.5vw;
-    box-sizing: border-box;
-    
     .all {
       width: 100%;
       height: 100%;
@@ -199,118 +149,89 @@ onBeforeUnmount(() => {
       justify-content: center;
       align-items: center;
     }
-
+    // .more 样式块已删除或忽略
     @media (max-width: 1200px) {
       padding: 0 2vw;
     }
   }
-
   .menu {
     position: absolute;
     display: flex;
     justify-content: center;
     align-items: center;
-    top: 80%; 
-    left: 50%;
-    transform: translateX(-50%);
+    top: 84%;
+    left: calc(50% - 28px);
     width: 56px;
     height: 34px;
     background: rgb(0 0 0 / 20%);
     backdrop-filter: blur(10px);
     border-radius: 6px;
-    transition: all 0.3s;
+    transition: transform 0.3s;
     animation: fade 0.5s;
-    z-index: 10;
-
     &:active {
-      transform: translateX(-50%) scale(0.95);
+      transform: scale(0.95);
     }
-
     .i-icon {
       transform: translateY(2px);
     }
-
     @media (min-width: 721px) {
       display: none;
     }
   }
-
-  /* ✅ 【新增】修复按钮样式 */
-  .fix-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    border-radius: 50px;
-    cursor: pointer;
-    z-index: 9999;
-    animation: fade 0.5s;
-    transition: transform 0.3s;
-    border: 1px solid rgba(245, 108, 108, 0.3);
-
-    .fix-text {
-      color: #f56c6c;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.8);
-      transform: scale(1.05);
-    }
-    
-    &:active {
-      transform: scale(0.95);
-    }
-
-    @media (max-width: 720px) {
-      top: 15px;
-      right: 15px;
-      padding: 6px 12px;
-      .fix-text {
-        font-size: 12px;
-      }
-    }
-  }
-
-  @media (max-width: 720px) {
-    .container {
-      height: 100vh;
-      padding: 0 16px;
-      .all {
-        flex-direction: column;
-        padding: 0;
-      }
-    }
-    @media (max-width: 390px) {
-      .container {
-        width: 100%;
-        padding: 0 10px;
-      }
-    }
-  }
-
   @media (max-height: 720px) {
+    overflow-y: auto;
+    overflow-x: hidden;
     .container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      height: 721px;
+      // .more { height: 721px; width: calc(100% + 6px); } // 删除相关引用
+      @media (min-width: 391px) {
+        padding-left: 0.7vw;
+        padding-right: 0.25vw;
+        @media (max-width: 1200px) {
+          padding-left: 2.3vw;
+          padding-right: 1.75vw;
+        }
+        @media (max-width: 1100px) {
+          padding-left: 2vw;
+          padding-right: calc(2vw - 6px);
+        }
+        @media (max-width: 992px) {
+          padding-left: 2.3vw;
+          padding-right: 1.7vw;
+        }
+        @media (max-width: 900px) {
+          padding-left: 2vw;
+          padding-right: calc(2vw - 6px);
+        }
+      }
     }
     .menu {
-      top: 85%;
+      top: 605.64px;
+      left: 170.5px;
+      @media (min-width: 391px) {
+        left: calc(50% - 25px);
+      }
     }
     .f-ter {
-      position: absolute;
-      bottom: 10px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
+      top: 675px;
+      @media (min-width: 391px) {
+        padding-left: 6px;
+      }
+    }
+  }
+  @media (max-width: 390px) {
+    overflow-x: auto;
+    .container {
+      width: 391px;
+    }
+    .menu {
+      left: 167.5px;
+    }
+    .f-ter {
+      width: 391px;
+    }
+    @media (min-height: 721px) {
+      overflow-y: hidden;
     }
   }
 }
