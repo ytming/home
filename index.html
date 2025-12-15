@@ -2,13 +2,10 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <!-- ✅ 新增：强制禁止浏览器缓存 HTML 文件 -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <!-- ✅ 新增结束 -->
     <meta http-equiv="Access-Control-Allow-Origin" content="*" />
-    <!-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="%VITE_SITE_LOGO%" />
     <link rel="apple-touch-icon" href="%VITE_SITE_APPLE_LOGO%" />
@@ -19,11 +16,7 @@
     <meta name="author" content="%VITE_SITE_AUTHOR%" />
     <meta name="theme-color" content="#424242" />
     <title>%VITE_SITE_NAME%</title>
-    <!-- HarmonyOS Sans -->
-    <!-- 本站 CDN 已开启防盗链，非本站域名不可访问，请更改链接为下方内容，否则自定义字体将失效 -->
     <link rel="stylesheet" href="https://s1.hdslb.com/bfs/static/jinkela/long/font/regular.css" />
-    <!-- <link rel="stylesheet" href="https://cdn.imsyy.top/gh/imsyy/file/font/HarmonyOS_Sans/regular.min.css" /> -->
-    <!-- IE Out -->
     <script>
       if (/*@cc_on!@*/ false || (!!window.MSInputMethodContext && !!document.documentMode))
         window.location.href =
@@ -33,12 +26,52 @@
   </head>
 
   <body>
-    <!-- 主体内容 -->
     <div id="app"></div>
-    <!-- noscript -->
     <noscript>
       <div style="text-align: center">请开启 JavaScript</div>
     </noscript>
     <script type="module" src="/src/main.js"></script>
+
+    <!-- index.html 底部脚本 -->
+<script>
+  (function() {
+    // ✅ 修改点：增加 targetUrl 参数，不再写死网址
+    window.nukeCacheAndReload = async function(targetUrl) {
+        if(!confirm("确定要修复跳转问题并刷新页面吗？")) return;
+
+        // 如果没传参数，兜底回首页（虽然一般都会传）
+        var dest = targetUrl || '/'; 
+        // 加上时间戳
+        var finalUrl = dest + (dest.indexOf('?') > -1 ? '&' : '?') + 't=' + new Date().getTime();
+
+        try {
+            // 1. 注销 Service Worker
+            if (navigator.serviceWorker) {
+                var registrations = await navigator.serviceWorker.getRegistrations();
+                for (var i = 0; i < registrations.length; i++) {
+                    await registrations[i].unregister();
+                }
+            }
+            // 2. 删除 Cache Storage
+            if (window.caches) {
+                var keys = await caches.keys();
+                for (var i = 0; i < keys.length; i++) {
+                    await caches.delete(keys[i]);
+                }
+            }
+            // 3. 清空存储
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 4. ✅ 跳转到传入的目标地址
+            window.location.replace(finalUrl);
+
+        } catch (e) {
+            console.error(e);
+            window.location.replace(finalUrl);
+        }
+    };
+  })();
+</script>
   </body>
 </html>
