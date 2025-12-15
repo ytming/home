@@ -26,14 +26,22 @@
       </a>
     </Transition>
 
-    <!-- 新增：关闭按钮 (仿时光胶囊弹窗风格) -->
+    <!-- 
+      新增：关闭按钮 
+      完全照搬 Box/index.vue 的样式配置
+      fill="#ffffff60" : 60% 透明度的白色
+    -->
     <Transition name="fade" mode="out-in">
       <div
         v-if="store.backgroundShow"
-        class="close-icon"
+        class="close"
         @click="closeCover"
       >
-        <close-one theme="filled" size="28" fill="#ffffff" />
+        <close-one 
+          theme="filled" 
+          size="28" 
+          fill="#ffffff60" 
+        />
       </div>
     </Transition>
   </div>
@@ -41,7 +49,7 @@
 
 <script setup>
 import { mainStore } from "@/store";
-import { Error, CloseOne } from "@icon-park/vue-next"; // 确保引入了 CloseOne
+import { Error, CloseOne } from "@icon-park/vue-next"; 
 
 const store = mainStore();
 const bgUrl = ref(null);
@@ -82,8 +90,6 @@ const loadFallback = async () => {
     if (!response.ok) throw new Error("Default Wallpaper Missing");
     const blob = await response.blob();
     createBlobUrl(blob);
-    // 仅在非初始化时提示，避免刷新页面太吵
-    // ElMessage.warning("使用默认壁纸"); 
   } catch (err) {
     console.error("默认壁纸也加载失败:", err);
     imgLoadError();
@@ -216,30 +222,28 @@ onBeforeUnmount(() => {
   }
 
   /* 
-   * 新增：关闭按钮样式
-   * 1. 使用 position: absolute 定位到右上角
-   * 2. z-index: 20 确保它浮在遮罩层上面（这很重要！）
-   * 3. 去掉了背景色，只保留图标，加上一点阴影防止背景太白看不清
+   * 完美照搬 Box/index.vue 的 .close 样式 
+   * 1. position, top, right 参数一致
+   * 2. hover: scale(1.2) 一致
+   * 3. 去掉了所有背景色和边框
+   * 4. 额外加了 z-index: 20 防止被背景层挡住（Box 组件不需要是因为它本身就在最上层，但这里需要）
    */
-  .close-icon {
+  .close {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 20; /* 必须大于 gray 层的层级 */
+    top: 14px;      /* 照搬 */
+    right: 14px;    /* 照搬 */
+    width: 28px;    /* 照搬 */
+    height: 28px;   /* 照搬 */
+    z-index: 20;    /* 必须加，否则点不到 */
     cursor: pointer;
-    opacity: 0.8;
     transition: transform 0.3s, opacity 0.3s;
-    
-    // 给图标加一个淡淡的阴影，这样即使壁纸是白色的也能看清
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 
     &:hover {
-      transform: scale(1.2);
-      opacity: 1;
+      transform: scale(1.2); /* 照搬 */
     }
-    
+
     &:active {
-      transform: scale(0.9);
+      transform: scale(1);   /* 照搬 */
     }
   }
 }
