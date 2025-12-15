@@ -17,6 +17,7 @@
     @pause="onPause"
     @timeupdate="onTimeUp"
     @error="loadMusicError"
+    preload="none"
   />
 </template>
 
@@ -104,6 +105,10 @@ onMounted(() => {
 // 播放
 const onPlay = () => {
   console.log("播放");
+  // 告诉浏览器：现在开始播放了，请全力下载/缓冲音频文件
+  if (player.value && player.value.audioRef) {
+    player.value.audioRef.preload = "auto";
+  }
   playIndex.value = player.value.aplayer.index;
   store.setPlayerState(player.value.audioRef.paused);
   store.setPlayerData(playList.value[playIndex.value].name, playList.value[playIndex.value].artist);
@@ -119,6 +124,11 @@ const onPlay = () => {
 
 // 暂停
 const onPause = () => {
+  // 告诉浏览器：暂停了，只需要保留元数据，不要在后台疯狂下载剩下的文件了
+  // 注意：浏览器可能会继续下载一小段缓冲区，但不会下载完整首歌
+  if (player.value && player.value.audioRef) {
+    player.value.audioRef.preload = "metadata";
+  }
   store.setPlayerState(player.value.audioRef.paused);
 };
 
