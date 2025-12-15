@@ -42,7 +42,7 @@
 
 <script setup>
 import { Icon } from "@vicons/utils";
-// 可前往 https://www.xicons.org 自行挑选并在此处引入
+// 可前往 https://www.xicons.org 自行挑选并在此处引入,还需要修改下面"网站链接图标"
 import { Link, ImagesRegular, CompactDisc, Cloud, Compass, Book, Fire, LaptopCode } from "@vicons/fa"; // 注意使用正确的类别
 import { mainStore } from "@/store";
 import { Swiper, SwiperSlide } from "swiper/vue";
