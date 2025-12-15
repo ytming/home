@@ -39,7 +39,7 @@
       >
         <close-one 
           theme="filled" 
-          size="35" 
+          size="28" 
           fill="#ffffff60" 
         />
       </div>
@@ -228,26 +228,23 @@ onBeforeUnmount(() => {
    * 3. 去掉了所有背景色和边框
    * 4. 额外加了 z-index: 20 防止被背景层挡住（Box 组件不需要是因为它本身就在最上层，但这里需要）
    */
-.close {
-  /* 位置：数值越大，越往屏幕中间（左下方向）移动 */
-  top: 40px;      /* 原来是 14px */
-  right: 40px;    /* 原来是 14px */
+  .close {
+    position: absolute;
+    top: 14px;      /* 照搬 */
+    right: 14px;    /* 照搬 */
+    width: 28px;    /* 照搬 */
+    height: 28px;   /* 照搬 */
+    z-index: 20;    /* 必须加，否则点不到 */
+    cursor: pointer;
+    transition: transform 0.3s, opacity 0.3s;
 
-  /* 大小：这里必须和上面 Template 里的 size 保持一致，否则点击区域会错位 */
-  width: 35px;    /* 原来是 28px */
-  height: 35px;   /* 原来是 28px */
+    &:hover {
+      transform: scale(1.2); /* 照搬 */
+    }
 
-  z-index: 20;
-  cursor: pointer;
-  transition: transform 0.3s, opacity 0.3s;
-
-  &:hover {
-    transform: scale(1.2);
+    &:active {
+      transform: scale(1);   /* 照搬 */
+    }
   }
-
-  &:active {
-    transform: scale(1);
-  }
-}
 }
 </style>
