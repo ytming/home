@@ -66,7 +66,7 @@ onMounted(() => {
       
       // 1. 使用 fetch 请求你的 Worker 接口
       const apiUrl = import.meta.env.VITE_MUSIC_API_URL;
-      const response = await fetch(apiUrl);
+      const response = await fetch(`${apiUrl}?t=${new Date().getTime()}`);
       
       // 2. 解析 JSON
       const res = await response.json();
