@@ -17,7 +17,7 @@
     @pause="onPause"
     @timeupdate="onTimeUp"
     @error="loadMusicError"
-    preload="none"
+    preload="auto"
   />
 </template>
 
