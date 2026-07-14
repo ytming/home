@@ -24,7 +24,7 @@
           <el-col v-for="(item, index) in site" :span="8" :key="item">
             <div
               class="item cards"
-              :style="index < 3 ? 'margin-bottom: 20px' : null"
+              :style="index < 6 ? 'margin-bottom: 20px' : null"
               @click="jumpLink(item)"
             >
               <Icon size="26">
@@ -54,8 +54,8 @@ const store = mainStore();
 // 计算网站链接
 const siteLinksList = computed(() => {
   const result = [];
-  for (let i = 0; i < siteLinks.length; i += 6) {
-    const subArr = siteLinks.slice(i, i + 6);
+  for (let i = 0; i < siteLinks.length; i += 9) {
+    const subArr = siteLinks.slice(i, i + 9);
     result.push(subArr);
   }
   return result;
