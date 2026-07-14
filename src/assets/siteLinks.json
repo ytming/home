@@ -5,6 +5,11 @@
     "link": "https://img.tming.cn"
   },
   {
+    "icon": "CompactDisc",
+    "name": "音乐库",
+    "link": "https://music.tming.cn"
+  },
+  {
     "icon": "Cloud",
     "name": "PanHub",
     "link": "https://panhub.tming.cn"
@@ -13,11 +18,6 @@
     "icon": "CompactDisc",
     "name": "音乐解锁",
     "link": "https://unlockmusic.tming.cn"
-  },
-  {
-    "icon": "CompactDisc",
-    "name": "音乐库",
-    "link": ""
   },
   {
     "icon": "CompactDisc",
