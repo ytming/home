@@ -89,7 +89,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .links {
   .line {
-    margin: 2rem 0.25rem 1rem;
+    margin: 0.5rem 0.25rem 1rem;
     font-size: 1.1rem;
     display: flex;
     align-items: center;
@@ -132,7 +132,7 @@ onMounted(() => {
     }
   }
   .link-all {
-    height: 220px;
+    height: 350px;
     .item {
       height: 100px;
       width: 100%;
@@ -175,7 +175,7 @@ onMounted(() => {
       }
     }
     @media (max-width: 720px) {
-      height: 180px;
+      height: 280px;
     }
   }
 }
